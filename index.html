@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Financeiro | Cloud System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* --- ESTILO GERAL (Dark/Light Professional) --- */
+        :root {
+            --primary: #0F172A; --accent: #10B981; --bg: #F1F5F9;
+            --text: #334155; --white: #ffffff; --danger: #EF4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); height: 100vh; display: flex; overflow: hidden; }
+
+        /* --- TELA DE LOGIN --- */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--primary); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .login-box {
+            background: white; padding: 2rem; border-radius: 12px; width: 90%; max-width: 350px; text-align: center;
+        }
+        .login-box input {
+            width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px;
+        }
+        .btn-login {
+            width: 100%; padding: 12px; background: var(--accent); color: white;
+            border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px;
+        }
+
+        /* --- SISTEMA PRINCIPAL (Escondido por padrão) --- */
+        #app-container { display: none; width: 100%; height: 100%; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px; background: var(--primary); color: white;
+            padding: 1.5rem; display: flex; flex-direction: column;
+        }
+        .menu-item {
+            padding: 12px; margin: 5px 0; cursor: pointer; border-radius: 8px; color: #94A3B8; display: flex; align-items: center; gap: 10px;
+        }
+        .menu-item:hover, .menu-item.active { background: rgba(255,255,255,0.1); color: white; }
+
+        /* Área Principal */
+        .main { flex: 1; padding: 2rem; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        
+        /* Cards e Grids */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .value { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
+
+        /* Lista de Transações */
+        .transaction-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px; border-bottom: 1px solid #eee;
+        }
+
+        /* Modal */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content { background: white; padding: 2rem; border-radius: 12px; width: 400px; }
+        .form-group { margin-bottom: 10px; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+
+        /* Responsividade Mobile */
+        @media (max-width: 768px) {
+            .sidebar { display: none; } /* Simplificado: Esconde menu no mobile */
+            .main { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h2 style="margin-bottom:1rem; color:var(--primary)">Acesso Seguro</h2>
+            <input type="email" id="email" placeholder="Email (admin@caio.com)">
+            <input type="password" id="password" placeholder="Sua Senha">
+            <button class="btn-login" onclick="fazerLogin()">ENTRAR</button>
+            <p id="msg-erro" style="color:red; margin-top:10px; font-size:0.9rem"></p>
+        </div>
+    </div>
+
+    <div id="app-container">
+        <aside class="sidebar">
+            <h3><i class="fas fa-wallet"></i> Finanças</h3>
+            <div style="margin-top: 2rem;">
+                <div class="menu-item active" onclick="verTela('home')"><i class="fas fa-home"></i> Painel</div>
+                <div class="menu-item" onclick="verTela('extrato')"><i class="fas fa-list"></i> Extrato</div>
+            </div>
+            <div class="menu-item" style="margin-top: auto;" onclick="sair()">
+                <i class="fas fa-sign-out-alt"></i> Sair
+            </div>
+        </aside>
+
+        <main class="main">
+            <div id="view-home">
+                <div class="header">
+                    <h2>Visão Geral</h2>
+                    <button class="btn-login" style="width:auto; margin:0;" onclick="abrirModal()">+ Nova Transação</button>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="card">
+                        <small>Saldo em Conta</small>
+                        <div class="value" id="kpi-saldo">R$ 0,00</div>
+                    </div>
+                    <div class="card">
+                        <small>Fatura Atual (Crédito)</small>
+                        <div class="value" style="color:#3B82F6" id="kpi-fatura">R$ 0,00</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Gastos por Categoria</h3>
+                    <div style="height:300px"><canvas id="grafico"></canvas></div>
+                </div>
+            </div>
+
+            <div id="view-extrato" style="display:none">
+                <h2>Extrato Completo</h2>
+                <div class="card" id="lista-transacoes" style="margin-top:1rem">
+                    <p>Carregando...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="modalTransacao">
+        <div class="modal-content">
+            <h3>Adicionar</h3>
+            <div class="form-group"><input type="text" id="desc" placeholder="Descrição (ex: Mercado)"></div>
+            <div class="form-group"><input type="number" id="valor" placeholder="Valor (R$)"></div>
+            <div class="form-group">
+                <select id="tipo">
+                    <option value="saida">Despesa (-)</option>
+                    <option value="entrada">Receita (+)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <select id="metodo">
+                    <option value="debito">Débito / Pix</option>
+                    <option value="credito">Cartão de Crédito</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <select id="categoria">
+                    <option value="Outros">Outros</option>
+                    <option value="Alimentação">Alimentação</option>
+                    <option value="Transporte">Transporte</option>
+                    <option value="Moradia">Moradia</option>
+                </select>
+            </div>
+            <div class="form-group"><input type="date" id="data"></div>
+            
+            <button class="btn-login" onclick="salvar()">Salvar</button>
+            <button class="btn-login" style="background:#ccc; color:#333" onclick="fecharModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Importa as funções do Google
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // --- AQUI VAI SUA CONFIGURAÇÃO (COLE AS CHAVES DA IMAGEM ABAIXO) ---
+        const firebaseConfig = {
+            apiKey: "COLE_SUA_APIKEY_AQUI",
+            authDomain: "financeiro-32139.firebaseapp.com",
+            projectId: "financeiro-32139",
+            storageBucket: "financeiro-32139.firebasestorage.app",
+            messagingSenderId: "929380352090",
+            appId: "1:929380352090:web:e5ea8655635e8f52e05863"
+        };
+
+        // Inicia o App
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        let currentUser = null;
+        let chartInstance = null;
+
+        // --- SISTEMA DE LOGIN ---
+        window.fazerLogin = async () => {
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('password').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, senha);
+            } catch (error) {
+                document.getElementById('msg-erro').innerText = "Erro: Email ou senha incorretos.";
+            }
+        }
+
+        window.sair = () => signOut(auth);
+
+        // Ouve se o usuário entrou ou saiu
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Usuário logado: Esconde Login, Mostra App
+                currentUser = user;
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-container').style.display = 'flex';
+                carregarDados();
+            } else {
+                // Usuário saiu: Mostra Login, Esconde App
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('app-container').style.display = 'none';
+            }
+        });
+
+        // --- FUNÇÕES DO BANCO DE DADOS ---
+        function carregarDados() {
+            // Busca apenas dados do usuário logado
+            const q = query(collection(db, "transacoes"), where("uid", "==", currentUser.uid));
+            
+            onSnapshot(q, (snapshot) => {
+                const transacoes = [];
+                snapshot.forEach(doc => transacoes.push({ id: doc.id, ...doc.data() }));
+                atualizarTela(transacoes);
+            });
+        }
+
+        window.salvar = async () => {
+            const desc = document.getElementById('desc').value;
+            const valor = parseFloat(document.getElementById('valor').value);
+            const tipo = document.getElementById('tipo').value;
+            const metodo = document.getElementById('metodo').value;
+            const categoria = document.getElementById('categoria').value;
+            const data = document.getElementById('data').value;
+
+            if(desc && valor && data) {
+                await addDoc(collection(db, "transacoes"), {
+                    uid: currentUser.uid, // Segurança: Salva o ID do dono
+                    desc, valor, tipo, metodo, categoria, data,
+                    timestamp: new Date()
+                });
+                fecharModal();
+            } else {
+                alert("Preencha tudo!");
+            }
+        }
+
+        window.deletar = async (id) => {
+            if(confirm("Apagar?")) await deleteDoc(doc(db, "transacoes", id));
+        }
+
+        // --- FUNÇÕES VISUAIS (INTERFACE) ---
+        function atualizarTela(dados) {
+            let saldo = 0;
+            let fatura = 0;
+            let categorias = {};
+            const lista = document.getElementById('lista-transacoes');
+            lista.innerHTML = '';
+
+            // Ordena por data (gambiarra visual simples)
+            dados.sort((a,b) => new Date(b.data) - new Date(a.data));
+
+            dados.forEach(t => {
+                // Lógica de Saldo vs Fatura
+                if(t.metodo === 'debito') {
+                    if(t.tipo === 'entrada') saldo += t.valor;
+                    else saldo -= t.valor;
+                } else if (t.metodo === 'credito' && t.tipo === 'saida') {
+                    fatura += t.valor;
+                }
+
+                // Agrupa categorias para o gráfico
+                if(t.tipo === 'saida') {
+                    categorias[t.categoria] = (categorias[t.categoria] || 0) + t.valor;
+                }
+
+                // Cria lista HTML
+                lista.innerHTML += `
+                    <div class="transaction-item">
+                        <div>
+                            <strong>${t.desc}</strong> <small>(${t.metodo})</small><br>
+                            <small style="color:#aaa">${t.data}</small>
+                        </div>
+                        <div>
+                            <span style="color:${t.tipo==='entrada'?'#10B981':'#EF4444'}">
+                                R$ ${t.valor.toFixed(2)}
+                            </span>
+                            <button onclick="deletar('${t.id}')" style="margin-left:10px; border:none; background:none; color:red; cursor:pointer">X</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('kpi-saldo').innerText = `R$ ${saldo.toFixed(2)}`;
+            document.getElementById('kpi-fatura').innerText = `R$ ${fatura.toFixed(2)}`;
+            gerarGrafico(categorias);
+        }
+
+        function gerarGrafico(dados) {
+            const ctx = document.getElementById('grafico').getContext('2d');
+            if(chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(dados),
+                    datasets: [{
+                        data: Object.values(dados),
+                        backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#EF4444']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        // Funções de Modal e Navegação
+        window.abrirModal = () => document.getElementById('modalTransacao').style.display = 'flex';
+        window.fecharModal = () => document.getElementById('modalTransacao').style.display = 'none';
+        window.verTela = (id) => {
+            document.getElementById('view-home').style.display = 'none';
+            document.getElementById('view-extrato').style.display = 'none';
+            document.getElementById('view-'+id).style.display = 'block';
+        }
+    </script>
+</body>
+</html>
