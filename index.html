@@ -2,180 +2,210 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle Financeiro | Cloud System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nexus Fin V8.1 | Porcentagem & Data</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* --- ESTILO GERAL (Dark/Light Professional) --- */
+        /* --- ESTILO (Baseado no V8) --- */
         :root {
-            --primary: #0F172A; --accent: #10B981; --bg: #F1F5F9;
-            --text: #334155; --white: #ffffff; --danger: #EF4444;
+            --primary: #0f172a; --secondary: #1e293b; --accent: #3b82f6; 
+            --success: #10b981; --danger: #ef4444; --bg: #f8fafc; --text: #334155; --invest: #8b5cf6;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); height: 100vh; display: flex; overflow: hidden; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); height: 100vh; color: var(--text); overflow: hidden; }
+        body.privacy-mode .blur-sensitive { color: transparent !important; text-shadow: 0 0 10px rgba(0,0,0,0.5); user-select: none; }
 
-        /* --- TELA DE LOGIN --- */
-        #login-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--primary); z-index: 9999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
-        .login-box {
-            background: white; padding: 2rem; border-radius: 12px; width: 90%; max-width: 350px; text-align: center;
-        }
-        .login-box input {
-            width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px;
-        }
-        .btn-login {
-            width: 100%; padding: 12px; background: var(--accent); color: white;
-            border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px;
-        }
+        /* LOGIN */
+        #login-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--primary); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .login-card { background: white; padding: 2rem; border-radius: 16px; width: 100%; max-width: 380px; text-align: center; }
+        .login-card input { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+        .btn { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
 
-        /* --- SISTEMA PRINCIPAL (Escondido por padrão) --- */
-        #app-container { display: none; width: 100%; height: 100%; }
-
-        /* Sidebar */
-        .sidebar {
-            width: 250px; background: var(--primary); color: white;
-            padding: 1.5rem; display: flex; flex-direction: column;
-        }
-        .menu-item {
-            padding: 12px; margin: 5px 0; cursor: pointer; border-radius: 8px; color: #94A3B8; display: flex; align-items: center; gap: 10px;
-        }
-        .menu-item:hover, .menu-item.active { background: rgba(255,255,255,0.1); color: white; }
-
-        /* Área Principal */
-        .main { flex: 1; padding: 2rem; overflow-y: auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        /* LAYOUT */
+        #app-container { display: none; width: 100vw; height: 100vh; display: grid; grid-template-columns: 260px 1fr; grid-template-rows: 1fr; }
         
-        /* Cards e Grids */
-        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .value { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
+        aside { background: var(--primary); color: white; padding: 1.5rem; display: flex; flex-direction: column; border-right: 1px solid #334155; }
+        .nav-item { padding: 14px; margin: 4px 0; border-radius: 10px; cursor: pointer; color: #94a3b8; display: flex; align-items: center; gap: 12px; transition: 0.2s; font-weight: 500; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); color: white; }
 
-        /* Lista de Transações */
-        .transaction-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px; border-bottom: 1px solid #eee;
-        }
+        main { background: var(--bg); padding: 2rem; overflow-y: auto; padding-bottom: 100px; }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; background: white; padding: 1rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
+        .value { font-size: 1.8rem; font-weight: 700; margin-top: 5px; }
 
-        /* Modal */
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;
-        }
-        .modal-content { background: white; padding: 2rem; border-radius: 12px; width: 400px; }
-        .form-group { margin-bottom: 10px; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+        .progress-container { background: #e2e8f0; border-radius: 99px; height: 10px; margin: 10px 0; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--invest); width: 0%; transition: width 1s; }
 
-        /* Responsividade Mobile */
+        .transaction-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; align-items: center; }
+        .sub-tag { font-size: 0.75rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #64748b; margin-left: 5px; }
+
+        .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #e2e8f0; justify-content: space-around; padding: 10px 0; z-index: 100; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+        .b-nav-item { text-align: center; color: #94a3b8; font-size: 0.75rem; flex: 1; }
+        .b-nav-item i { font-size: 1.4rem; display: block; margin-bottom: 2px; }
+        .b-nav-item.active { color: var(--accent); }
+
+        /* MODAL */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 1.5rem; width: 90%; max-width: 450px; border-radius: 16px; animation: slideUp 0.3s; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        select, input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 10px; font-size: 16px; }
+
         @media (max-width: 768px) {
-            .sidebar { display: none; } /* Simplificado: Esconde menu no mobile */
-            .main { padding: 1rem; }
+            #app-container { grid-template-columns: 1fr; display: block; }
+            aside { display: none; }
+            .bottom-nav { display: flex; }
+            .modal { align-items: flex-end; }
+            .modal-content { border-radius: 20px 20px 0 0; width: 100%; max-width: 100%; }
+            .header-bar { flex-direction: column; gap: 10px; align-items: stretch; }
         }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <div class="login-box">
-            <h2 style="margin-bottom:1rem; color:var(--primary)">Acesso Seguro</h2>
-            <input type="email" id="email" placeholder="Email (admin@caio.com)">
-            <input type="password" id="password" placeholder="Sua Senha">
-            <button class="btn-login" onclick="fazerLogin()">ENTRAR</button>
-            <p id="msg-erro" style="color:red; margin-top:10px; font-size:0.9rem"></p>
+        <div class="login-card">
+            <h2 style="color:var(--primary)">Nexus Fin V8.1</h2>
+            <p style="color:#64748b; margin-bottom:20px">Com Gráficos Interativos</p>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Senha">
+            <button class="btn" onclick="app.login()">ACESSAR</button>
+            <p id="msg-erro" style="color:red; margin-top:10px"></p>
         </div>
     </div>
 
-    <div id="app-container">
-        <aside class="sidebar">
-            <h3><i class="fas fa-wallet"></i> Finanças</h3>
-            <div style="margin-top: 2rem;">
-                <div class="menu-item active" onclick="verTela('home')"><i class="fas fa-home"></i> Painel</div>
-                <div class="menu-item" onclick="verTela('extrato')"><i class="fas fa-list"></i> Extrato</div>
-            </div>
-            <div class="menu-item" style="margin-top: auto;" onclick="sair()">
-                <i class="fas fa-sign-out-alt"></i> Sair
-            </div>
+    <div id="app-container" style="display:none">
+        <aside>
+            <div style="font-size:1.5rem; font-weight:700; margin-bottom:2rem; color:var(--accent); display:flex; gap:10px; align-items:center"><i class="fas fa-layer-group"></i> Nexus Fin</div>
+            <div class="nav-item active" onclick="app.nav('home')"><i class="fas fa-home"></i> Visão Geral</div>
+            <div class="nav-item" onclick="app.nav('financeiro')"><i class="fas fa-wallet"></i> Financeiro</div>
+            <div class="nav-item" onclick="app.nav('invest')"><i class="fas fa-chart-line"></i> Investimentos</div>
+            <div class="nav-item" style="margin-top:auto" onclick="app.logout()"><i class="fas fa-sign-out-alt"></i> Sair</div>
         </aside>
 
-        <main class="main">
-            <div id="view-home">
-                <div class="header">
-                    <h2>Visão Geral</h2>
-                    <button class="btn-login" style="width:auto; margin:0;" onclick="abrirModal()">+ Nova Transação</button>
+        <main>
+            <div class="header-bar">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%">
+                    <h2 id="page-title">Visão Geral</h2>
+                    <i class="fas fa-eye" style="cursor:pointer; color:#64748b" onclick="app.togglePrivacy()" id="icon-privacy"></i>
                 </div>
-
-                <div class="kpi-grid">
-                    <div class="card">
-                        <small>Saldo em Conta</small>
-                        <div class="value" id="kpi-saldo">R$ 0,00</div>
-                    </div>
-                    <div class="card">
-                        <small>Fatura Atual (Crédito)</small>
-                        <div class="value" style="color:#3B82F6" id="kpi-fatura">R$ 0,00</div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3>Gastos por Categoria</h3>
-                    <div style="height:300px"><canvas id="grafico"></canvas></div>
+                <div style="display:flex; gap:10px; width:100%; margin-top:10px;">
+                    <input type="month" id="mes-filtro" onchange="app.carregarDados()" style="margin:0; flex:1">
+                    <button class="btn" style="width:auto; padding:0 20px" onclick="view.abrirModal()">+</button>
                 </div>
             </div>
 
-            <div id="view-extrato" style="display:none">
-                <h2>Extrato Completo</h2>
-                <div class="card" id="lista-transacoes" style="margin-top:1rem">
-                    <p>Carregando...</p>
+            <div id="view-home" class="view-section">
+                <div class="kpi-grid">
+                    <div class="card">
+                        <small>Saldo Disponível (Real)</small>
+                        <div class="value blur-sensitive" id="kpi-saldo" style="color:var(--primary)">R$ 0,00</div>
+                    </div>
+                    <div class="card">
+                        <small>Balanço do Mês (Fluxo)</small>
+                        <div class="value blur-sensitive" id="kpi-fluxo" style="color:var(--success)">R$ 0,00</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h4>Gastos por Categoria (%)</h4>
+                    <div style="height: 250px;"><canvas id="graficoRosca"></canvas></div>
+                </div>
+            </div>
+
+            <div id="view-financeiro" class="view-section" style="display:none">
+                <div class="kpi-grid">
+                    <div class="card">
+                        <small>Fatura de Crédito (Mês)</small>
+                        <div class="value blur-sensitive" id="kpi-fatura" style="color:var(--danger)">R$ 0,00</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h4>Extrato & Fatura</h4>
+                    <div id="lista-financeiro"></div>
+                </div>
+            </div>
+
+            <div id="view-invest" class="view-section" style="display:none">
+                <div class="card" style="margin-bottom:1.5rem; border-top: 4px solid var(--invest)">
+                    <div style="display:flex; justify-content:space-between; align-items:end">
+                        <small>Patrimônio Total</small>
+                        <button style="border:1px solid var(--accent); background:white; color:var(--accent); padding:4px 8px; border-radius:6px; font-size:0.8rem; cursor:pointer" onclick="view.definirMeta()">Definir Meta</button>
+                    </div>
+                    <div class="value blur-sensitive" id="kpi-invest" style="color:var(--invest)">R$ 0,00</div>
+                    
+                    <div style="margin-top:15px">
+                        <div style="display:flex; justify-content:space-between; font-size:0.8rem">
+                            <span>Progresso</span> <span id="meta-label">0%</span>
+                        </div>
+                        <div class="progress-container"><div class="progress-bar" id="barra-meta"></div></div>
+                        <small id="valor-meta-display" style="color:#94a3b8">Meta não definida</small>
+                    </div>
+                </div>
+                <div class="card">
+                    <h4>Histórico de Aportes</h4>
+                    <div id="lista-investimentos"></div>
                 </div>
             </div>
         </main>
+
+        <nav class="bottom-nav">
+            <div class="b-nav-item active" onclick="app.nav('home', this)"><i class="fas fa-home"></i>Início</div>
+            <div class="b-nav-item" onclick="app.nav('financeiro', this)"><i class="fas fa-wallet"></i>Extrato</div>
+            <div class="b-nav-item" onclick="app.nav('invest', this)"><i class="fas fa-chart-line"></i>Investir</div>
+        </nav>
     </div>
 
-    <div class="modal" id="modalTransacao">
+    <div class="modal" id="modal">
         <div class="modal-content">
-            <h3>Adicionar</h3>
-            <div class="form-group"><input type="text" id="desc" placeholder="Descrição (ex: Mercado)"></div>
-            <div class="form-group"><input type="number" id="valor" placeholder="Valor (R$)"></div>
-            <div class="form-group">
-                <select id="tipo">
-                    <option value="saida">Despesa (-)</option>
-                    <option value="entrada">Receita (+)</option>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
+                <h3>Novo Lançamento</h3>
+                <i class="fas fa-times" onclick="view.fecharModal()" style="font-size:1.2rem; color:#94a3b8; cursor:pointer"></i>
+            </div>
+
+            <select id="tipo" onchange="view.atualizarForm()">
+                <option value="saida">🔴 Despesa</option>
+                <option value="entrada">🟢 Receita</option>
+                <option value="aporte">🟣 Investimento</option>
+                <option value="resgate">🔵 Resgate</option>
+            </select>
+
+            <input type="text" id="desc" placeholder="Descrição (ex: TV, Mercado)">
+            <input type="text" id="subcat" placeholder="Detalhe (ex: Samsung, Uber)">
+
+            <div class="form-row">
+                <input type="number" id="valor" placeholder="R$ Total" step="0.01">
+                <input type="date" id="data">
+            </div>
+
+            <select id="categoria"></select>
+
+            <div id="box-metodo">
+                <select id="metodo" onchange="view.verificarCredito()">
+                    <option value="debito">Débito / PIX (Desconta Agora)</option>
+                    <option value="credito">Cartão de Crédito (Fatura)</option>
                 </select>
             </div>
-            <div class="form-group">
-                <select id="metodo">
-                    <option value="debito">Débito / Pix</option>
-                    <option value="credito">Cartão de Crédito</option>
-                </select>
+
+            <div id="box-parcelas" style="display:none; background:#f1f5f9; padding:10px; border-radius:8px; margin-bottom:10px">
+                <label style="font-size:0.8rem; font-weight:bold; color:#64748b">Quantidade de Parcelas:</label>
+                <input type="number" id="qtd-parcelas" value="1" min="1" max="48" style="margin-bottom:0">
             </div>
-            <div class="form-group">
-                <select id="categoria">
-                    <option value="Outros">Outros</option>
-                    <option value="Alimentação">Alimentação</option>
-                    <option value="Transporte">Transporte</option>
-                    <option value="Moradia">Moradia</option>
-                </select>
-            </div>
-            <div class="form-group"><input type="date" id="data"></div>
-            
-            <button class="btn-login" onclick="salvar()">Salvar</button>
-            <button class="btn-login" style="background:#ccc; color:#333" onclick="fecharModal()">Cancelar</button>
+
+            <button class="btn" onclick="app.salvar()">SALVAR</button>
         </div>
     </div>
 
     <script type="module">
-        // Importa as funções do Google
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, deleteDoc, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- AQUI VAI SUA CONFIGURAÇÃO (COLE AS CHAVES DA IMAGEM ABAIXO) ---
         const firebaseConfig = {
-            apiKey: "COLE_SUA_APIKEY_AQUI",
+            apiKey: "AIzaSyCTvlujToSUX3JvLakYv9Dwt-9B7sgW7t8",
             authDomain: "financeiro-32139.firebaseapp.com",
             projectId: "financeiro-32139",
             storageBucket: "financeiro-32139.firebasestorage.app",
@@ -183,148 +213,268 @@
             appId: "1:929380352090:web:e5ea8655635e8f52e05863"
         };
 
-        // Inicia o App
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        const appInstance = initializeApp(firebaseConfig);
+        const auth = getAuth(appInstance);
+        const db = getFirestore(appInstance);
+        
         let currentUser = null;
-        let chartInstance = null;
+        let chart = null;
+        let dbData = [];
+        let metaInvestimento = 0;
 
-        // --- SISTEMA DE LOGIN ---
-        window.fazerLogin = async () => {
-            const email = document.getElementById('email').value;
-            const senha = document.getElementById('password').value;
-            try {
-                await signInWithEmailAndPassword(auth, email, senha);
-            } catch (error) {
-                document.getElementById('msg-erro').innerText = "Erro: Email ou senha incorretos.";
+        const app = {
+            login: async () => {
+                try {
+                    await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value);
+                } catch(e) { document.getElementById('msg-erro').innerText = "Erro: " + e.code; }
+            },
+            logout: () => signOut(auth),
+            
+            togglePrivacy: () => {
+                document.body.classList.toggle('privacy-mode');
+                document.getElementById('icon-privacy').classList.toggle('fa-eye-slash');
+            },
+
+            nav: (tela, elem) => {
+                document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('.nav-item, .b-nav-item').forEach(el => el.classList.remove('active'));
+                document.getElementById('view-'+tela).style.display = 'block';
+                if(elem) elem.classList.add('active');
+                
+                const titulos = { 'home': 'Visão Geral', 'financeiro': 'Extrato & Fatura', 'invest': 'Carteira' };
+                document.getElementById('page-title').innerText = titulos[tela];
+            },
+
+            salvar: async () => {
+                const tipo = document.getElementById('tipo').value;
+                const desc = document.getElementById('desc').value;
+                const subcat = document.getElementById('subcat').value;
+                const valorTotal = parseFloat(document.getElementById('valor').value);
+                const categoria = document.getElementById('categoria').value;
+                const dataBase = document.getElementById('data').value;
+                const metodo = (tipo === 'saida') ? document.getElementById('metodo').value : 'debito';
+                
+                let parcelas = 1;
+                if(tipo === 'saida' && metodo === 'credito') {
+                    parcelas = parseInt(document.getElementById('qtd-parcelas').value) || 1;
+                }
+
+                if(!desc || !valorTotal || !dataBase) return alert("Preencha os campos obrigatórios!");
+
+                const valorParcela = valorTotal / parcelas;
+                const batchPromises = [];
+
+                for (let i = 0; i < parcelas; i++) {
+                    let dataObj = new Date(dataBase + 'T12:00:00'); 
+                    dataObj.setMonth(dataObj.getMonth() + i);
+                    const dataFormatada = dataObj.toISOString().split('T')[0];
+                    const descFinal = parcelas > 1 ? `${desc} (${i+1}/${parcelas})` : desc;
+
+                    const dados = {
+                        uid: currentUser.uid,
+                        tipo: tipo,
+                        desc: descFinal,
+                        subcat: subcat,
+                        valor: parseFloat(valorParcela.toFixed(2)),
+                        categoria: categoria,
+                        data: dataFormatada,
+                        metodo: metodo,
+                        timestamp: new Date()
+                    };
+                    batchPromises.push(addDoc(collection(db, "transacoes"), dados));
+                }
+
+                await Promise.all(batchPromises);
+                view.fecharModal();
+            },
+
+            deletar: async (id) => {
+                if(confirm("Apagar registro?")) await deleteDoc(doc(db, "transacoes", id));
+            },
+
+            carregarDados: () => {
+                const mesFiltro = document.getElementById('mes-filtro').value;
+                let saldoReal = 0; 
+                let totalInvestido = 0;
+                let fluxoMesEntrada = 0;
+                let fluxoMesSaida = 0;
+                let faturaMes = 0;
+                let categoriasChart = {};
+
+                const divFin = document.getElementById('lista-financeiro');
+                const divInv = document.getElementById('lista-investimentos');
+                divFin.innerHTML = ''; divInv.innerHTML = '';
+
+                dbData.sort((a,b) => new Date(b.data) - new Date(a.data));
+
+                dbData.forEach(t => {
+                    if(t.tipo === 'entrada') saldoReal += t.valor;
+                    if(t.tipo === 'resgate') { saldoReal += t.valor; totalInvestido -= t.valor; }
+                    if(t.tipo === 'saida' && t.metodo === 'debito') saldoReal -= t.valor;
+                    if(t.tipo === 'aporte') { saldoReal -= t.valor; totalInvestido += t.valor; }
+
+                    const dataItem = t.data.substring(0, 7);
+                    if(!mesFiltro || dataItem === mesFiltro) {
+                        if(t.tipo === 'entrada') fluxoMesEntrada += t.valor;
+                        if(t.tipo === 'saida') fluxoMesSaida += t.valor;
+                        if(t.tipo === 'saida' && t.metodo === 'credito') faturaMes += t.valor;
+                        if(t.tipo === 'saida') categoriasChart[t.categoria] = (categoriasChart[t.categoria] || 0) + t.valor;
+
+                        const subTag = t.subcat ? `<span class="sub-tag">${t.subcat}</span>` : '';
+                        const metodoIcon = t.metodo === 'credito' ? '<i class="far fa-credit-card" style="margin-left:5px"></i>' : '';
+                        const cor = (t.tipo.includes('entrada') || t.tipo === 'resgate') ? 'var(--success)' : 'var(--danger)';
+                        
+                        const html = `
+                            <div class="transaction-row">
+                                <div>
+                                    <div style="font-weight:600">${t.desc} ${subTag}</div>
+                                    <small style="color:#94a3b8">${t.data.split('-').reverse().join('/')} • ${t.categoria} ${metodoIcon}</small>
+                                </div>
+                                <div style="text-align:right">
+                                    <div class="blur-sensitive" style="font-weight:700; color:${cor}">R$ ${t.valor.toFixed(2)}</div>
+                                    <i class="fas fa-trash" style="color:#e2e8f0; margin-top:5px; cursor:pointer" onclick="app.deletar('${t.id}')"></i>
+                                </div>
+                            </div>`;
+
+                        if(t.tipo === 'aporte' || t.tipo === 'resgate') divInv.innerHTML += html;
+                        else divFin.innerHTML += html;
+                    }
+                });
+
+                document.getElementById('kpi-saldo').innerText = `R$ ${saldoReal.toFixed(2)}`;
+                document.getElementById('kpi-invest').innerText = `R$ ${totalInvestido.toFixed(2)}`;
+                document.getElementById('kpi-fatura').innerText = `R$ ${faturaMes.toFixed(2)}`;
+                
+                const balanco = fluxoMesEntrada - fluxoMesSaida;
+                document.getElementById('kpi-fluxo').innerText = `R$ ${balanco.toFixed(2)}`;
+                document.getElementById('kpi-fluxo').style.color = balanco >= 0 ? 'var(--success)' : 'var(--danger)';
+
+                if(metaInvestimento > 0) {
+                    const pct = Math.min((totalInvestido / metaInvestimento) * 100, 100);
+                    document.getElementById('barra-meta').style.width = `${pct}%`;
+                    document.getElementById('meta-label').innerText = `${pct.toFixed(1)}%`;
+                }
+
+                app.atualizarGrafico(categoriasChart);
+            },
+
+            atualizarGrafico: (dados) => {
+                const ctx = document.getElementById('graficoRosca').getContext('2d');
+                if(chart) chart.destroy();
+                chart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(dados),
+                        datasets: [{ data: Object.values(dados), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'], borderWidth:0 }]
+                    },
+                    options: { 
+                        maintainAspectRatio: false, 
+                        plugins: { 
+                            legend: {position:'right', labels:{boxWidth:10}},
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        let value = context.parsed;
+                                        let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        let percentage = ((value / total) * 100).toFixed(1) + "%";
+                                        return `${label}: R$ ${value.toFixed(2)} (${percentage})`;
+                                    }
+                                }
+                            }
+                        } 
+                    }
+                });
+            },
+
+            carregarMeta: async () => {
+                try {
+                    const snap = await getDoc(doc(db, "config", currentUser.uid));
+                    if(snap.exists()) {
+                        metaInvestimento = snap.data().meta || 0;
+                        document.getElementById('valor-meta-display').innerText = `Meta: R$ ${metaInvestimento.toFixed(2)}`;
+                    }
+                } catch(e){}
             }
-        }
+        };
 
-        window.sair = () => signOut(auth);
+        const view = {
+            abrirModal: () => {
+                document.getElementById('modal').style.display = 'flex';
+                // LÓGICA DE DATA: Pega o dia de hoje ajustado para o fuso local
+                const hoje = new Date();
+                const offset = hoje.getTimezoneOffset();
+                const localDate = new Date(hoje.getTime() - (offset*60*1000));
+                document.getElementById('data').value = localDate.toISOString().split('T')[0];
+                view.atualizarForm();
+            },
+            fecharModal: () => document.getElementById('modal').style.display = 'none',
+            
+            atualizarForm: () => {
+                const tipo = document.getElementById('tipo').value;
+                const cats = {
+                    saida: ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Outros'],
+                    entrada: ['Salário', 'Extra'],
+                    aporte: ['Ações', 'FIIs', 'Renda Fixa', 'Cripto'],
+                    resgate: ['Uso Pessoal']
+                };
+                const sel = document.getElementById('categoria');
+                sel.innerHTML = '';
+                cats[tipo].forEach(c => sel.innerHTML += `<option value="${c}">${c}</option>`);
+                
+                document.getElementById('box-metodo').style.display = (tipo === 'saida') ? 'block' : 'none';
+                view.verificarCredito();
+            },
 
-        // Ouve se o usuário entrou ou saiu
+            verificarCredito: () => {
+                const tipo = document.getElementById('tipo').value;
+                const metodo = document.getElementById('metodo').value;
+                document.getElementById('box-parcelas').style.display = (tipo === 'saida' && metodo === 'credito') ? 'block' : 'none';
+            },
+
+            definirMeta: async () => {
+                if(!currentUser) return alert("Erro de usuário. Faça login novamente.");
+                
+                // Usando prompt simples para garantir compatibilidade
+                const v = prompt("Digite o valor da sua Meta (Ex: 50000):", metaInvestimento);
+                if(v && !isNaN(v)) {
+                    metaInvestimento = parseFloat(v);
+                    try {
+                        await setDoc(doc(db, "config", currentUser.uid), { meta: metaInvestimento }, { merge: true });
+                        document.getElementById('valor-meta-display').innerText = `Meta: R$ ${metaInvestimento.toFixed(2)}`;
+                        alert("Meta salva com sucesso!"); // Feedback visual
+                        app.carregarDados();
+                    } catch(e) {
+                        console.error(e);
+                        alert("Erro ao salvar meta: " + e.message);
+                    }
+                }
+            }
+        };
+
+        window.app = app; window.view = view;
+
         onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // Usuário logado: Esconde Login, Mostra App
+            if(user) {
                 currentUser = user;
                 document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-container').style.display = 'flex';
-                carregarDados();
+                document.getElementById('app-container').style.display = 'grid';
+                if(window.innerWidth <= 768) document.getElementById('app-container').style.display = 'block';
+
+                document.getElementById('mes-filtro').value = new Date().toISOString().substring(0,7);
+                app.carregarMeta();
+
+                const q = query(collection(db, "transacoes"), where("uid", "==", user.uid));
+                onSnapshot(q, (snap) => {
+                    dbData = [];
+                    snap.forEach(d => dbData.push({id: d.id, ...d.data()}));
+                    app.carregarDados();
+                });
             } else {
-                // Usuário saiu: Mostra Login, Esconde App
                 document.getElementById('login-screen').style.display = 'flex';
                 document.getElementById('app-container').style.display = 'none';
             }
         });
-
-        // --- FUNÇÕES DO BANCO DE DADOS ---
-        function carregarDados() {
-            // Busca apenas dados do usuário logado
-            const q = query(collection(db, "transacoes"), where("uid", "==", currentUser.uid));
-            
-            onSnapshot(q, (snapshot) => {
-                const transacoes = [];
-                snapshot.forEach(doc => transacoes.push({ id: doc.id, ...doc.data() }));
-                atualizarTela(transacoes);
-            });
-        }
-
-        window.salvar = async () => {
-            const desc = document.getElementById('desc').value;
-            const valor = parseFloat(document.getElementById('valor').value);
-            const tipo = document.getElementById('tipo').value;
-            const metodo = document.getElementById('metodo').value;
-            const categoria = document.getElementById('categoria').value;
-            const data = document.getElementById('data').value;
-
-            if(desc && valor && data) {
-                await addDoc(collection(db, "transacoes"), {
-                    uid: currentUser.uid, // Segurança: Salva o ID do dono
-                    desc, valor, tipo, metodo, categoria, data,
-                    timestamp: new Date()
-                });
-                fecharModal();
-            } else {
-                alert("Preencha tudo!");
-            }
-        }
-
-        window.deletar = async (id) => {
-            if(confirm("Apagar?")) await deleteDoc(doc(db, "transacoes", id));
-        }
-
-        // --- FUNÇÕES VISUAIS (INTERFACE) ---
-        function atualizarTela(dados) {
-            let saldo = 0;
-            let fatura = 0;
-            let categorias = {};
-            const lista = document.getElementById('lista-transacoes');
-            lista.innerHTML = '';
-
-            // Ordena por data (gambiarra visual simples)
-            dados.sort((a,b) => new Date(b.data) - new Date(a.data));
-
-            dados.forEach(t => {
-                // Lógica de Saldo vs Fatura
-                if(t.metodo === 'debito') {
-                    if(t.tipo === 'entrada') saldo += t.valor;
-                    else saldo -= t.valor;
-                } else if (t.metodo === 'credito' && t.tipo === 'saida') {
-                    fatura += t.valor;
-                }
-
-                // Agrupa categorias para o gráfico
-                if(t.tipo === 'saida') {
-                    categorias[t.categoria] = (categorias[t.categoria] || 0) + t.valor;
-                }
-
-                // Cria lista HTML
-                lista.innerHTML += `
-                    <div class="transaction-item">
-                        <div>
-                            <strong>${t.desc}</strong> <small>(${t.metodo})</small><br>
-                            <small style="color:#aaa">${t.data}</small>
-                        </div>
-                        <div>
-                            <span style="color:${t.tipo==='entrada'?'#10B981':'#EF4444'}">
-                                R$ ${t.valor.toFixed(2)}
-                            </span>
-                            <button onclick="deletar('${t.id}')" style="margin-left:10px; border:none; background:none; color:red; cursor:pointer">X</button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            document.getElementById('kpi-saldo').innerText = `R$ ${saldo.toFixed(2)}`;
-            document.getElementById('kpi-fatura').innerText = `R$ ${fatura.toFixed(2)}`;
-            gerarGrafico(categorias);
-        }
-
-        function gerarGrafico(dados) {
-            const ctx = document.getElementById('grafico').getContext('2d');
-            if(chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(dados),
-                    datasets: [{
-                        data: Object.values(dados),
-                        backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#EF4444']
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
-
-        // Funções de Modal e Navegação
-        window.abrirModal = () => document.getElementById('modalTransacao').style.display = 'flex';
-        window.fecharModal = () => document.getElementById('modalTransacao').style.display = 'none';
-        window.verTela = (id) => {
-            document.getElementById('view-home').style.display = 'none';
-            document.getElementById('view-extrato').style.display = 'none';
-            document.getElementById('view-'+id).style.display = 'block';
-        }
     </script>
 </body>
 </html>
